@@ -1,0 +1,20 @@
+{
+  "name": "reservas-aulas-frontend",
+  "version": "1.0.0",
+  "description": "Frontend React con Vite para reservas de aulas.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "axios": "^1.6.8",
+    "keycloak-js": "^26.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.3",
+    "vite": "^8.0.16"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "realm": "reservas-aulas",
+  "enabled": true,
+  "registrationAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "admin",
+        "description": "Puede administrar todas las reservas"
+      },
+      {
+        "name": "usuario",
+        "description": "Puede crear y cancelar reservas propias"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "reservas-frontend",
+      "name": "Reservas de aulas frontend",
+      "enabled": true,
+      "publicClient": true,
+      "clientAuthenticatorType": "client-secret",
+      "redirectUris": [
+        "http://localhost:5173/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
+    }
+  ],
+  "users": [
+    {
+      "id": "kc-admin",
+      "username": "admin@dds.com",
+      "email": "admin@dds.com",
+      "firstName": "Admin",
+      "lastName": "DDS",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Admin123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin"]
+    },
+    {
+      "id": "kc-ana",
+      "username": "ana@dds.com",
+      "email": "ana@dds.com",
+      "firstName": "Ana",
+      "lastName": "Perez",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Usuario123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["usuario"]
+    },
+    {
+      "id": "kc-bruno",
+      "username": "bruno@dds.com",
+      "email": "bruno@dds.com",
+      "firstName": "Bruno",
+      "lastName": "Gomez",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "Usuario123!",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["usuario"]
+    }
+  ]
+}
+
