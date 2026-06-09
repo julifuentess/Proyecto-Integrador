@@ -1,6 +1,6 @@
 ﻿// La autenticacion se delega en Keycloak; estos usuarios solo representan perfiles de dominio.
 const seedData = {
-  usuarios: [
+  /*usuarios: [
     {
       id: "usr-admin",
       keycloakId: "kc-admin",
@@ -25,7 +25,7 @@ const seedData = {
       rol: "usuario",
       activo: true
     }
-  ],
+  ],*/
   aulas: [
     {
       id: "aula-910",

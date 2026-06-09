@@ -3,9 +3,9 @@ const config = {
   authProvider: process.env.AUTH_PROVIDER || "keycloak",
   jwtSecret: process.env.JWT_SECRET || "dds-reservas-aulas-test-secret",
   keycloak: {
-    url: process.env.KEYCLOAK_URL || "http://localhost:8080",
-    realm: process.env.KEYCLOAK_REALM || "reservas-aulas",
-    clientId: process.env.KEYCLOAK_CLIENT_ID || "reservas-frontend",
+    url: process.env.KEYCLOAK_URL || "https://labsys.frc.utn.edu.ar/aim",
+    realm: process.env.KEYCLOAK_REALM || "dds-materia",
+    clientId: process.env.KEYCLOAK_CLIENT_ID || "grupo22",
     audience: process.env.KEYCLOAK_AUDIENCE || ""
   },
   database: {

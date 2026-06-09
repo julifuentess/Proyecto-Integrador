@@ -2,9 +2,9 @@ import Keycloak from "keycloak-js";
 
 // Configuracion del cliente publico creado en Keycloak.
 const keycloak = new Keycloak({
-  url: import.meta.env.VITE_KEYCLOAK_URL || "http://localhost:8080",
-  realm: import.meta.env.VITE_KEYCLOAK_REALM || "reservas-aulas",
-  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || "reservas-frontend"
+  url: import.meta.env.VITE_KEYCLOAK_URL || "https://labsys.frc.utn.edu.ar/aim",
+  realm: import.meta.env.VITE_KEYCLOAK_REALM || "dds-materia",
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || "grupo22"
 });
 
 let initPromise;
@@ -48,4 +48,3 @@ export function getUserFromToken() {
 }
 
 export default keycloak;
-
