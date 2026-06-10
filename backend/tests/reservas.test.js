@@ -30,10 +30,32 @@ afterAll(async () => {
   await sequelize.close();
 });
 
+test("health endpoint devuelve ok", async () => {
+  const response = await request(app)
+    .get("/api/health");
+
+  expect(response.status).toBe(200);
+  expect(response.body.ok).toBe(true);
+});
+
 test("login local queda delegado a Keycloak", async () => {
   const response = await request(app)
     .post("/api/auth/login")
     .send({ email: "admin@dds.com", password: "Admin123!" });
+
+  expect(response.status).toBe(200);
+  expect(response.body.authProvider).toBe("keycloak");
+  expect(response.body.keycloak.realm).toBe("dds-materia");
+});
+
+test("registro local queda delegado a Keycloak", async () => {
+  const response = await request(app)
+    .post("/api/auth/register")
+    .send({
+      nombre: "Usuario Test",
+      email: "test@dds.com",
+      password: "Password123!"
+    });
 
   expect(response.status).toBe(200);
   expect(response.body.authProvider).toBe("keycloak");
@@ -178,3 +200,37 @@ test("transicion no permitida al aprobar una cancelada devuelve 400", async () =
   expect(response.status).toBe(400);
   expect(response.body.error).toBe("Transicion de estado no permitida");
 });
+
+test("resumen devuelve estadisticas para admin", async () => {
+  const response = await request(app)
+    .get("/api/reservas/resumen")
+    .set("Authorization", `Bearer ${adminToken}`);
+
+  expect(response.status).toBe(200);
+});
+
+test("admin puede rechazar una reserva", async () => {
+  const response = await request(app)
+    .patch("/api/reservas/res-1001/rechazar")
+    .set("Authorization", `Bearer ${adminToken}`);
+
+  expect(response.status).toBe(200);
+});
+
+test("usuario puede cancelar una reserva", async () => {
+  const response = await request(app)
+    .patch("/api/reservas/res-1001/cancelar")
+    .set("Authorization", `Bearer ${userToken}`);
+
+  expect(response.status).toBe(200);
+});
+
+test("listado de aulas devuelve aulas disponibles", async () => {
+  const response = await request(app)
+    .get("/api/aulas");
+
+  expect(response.status).toBe(200);
+  expect(Array.isArray(response.body)).toBe(true);
+  expect(response.body.length).toBeGreaterThan(0);
+});
+
