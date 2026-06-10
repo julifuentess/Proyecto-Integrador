@@ -26,7 +26,9 @@ function buildAllowedReservaData(source, current = {}) {
     horaInicio: source.horaInicio ?? current.horaInicio,
     horaFin: source.horaFin ?? current.horaFin,
     cantidadPersonas:
-      source.cantidadPersonas !== undefined ? Number(source.cantidadPersonas) : Number(current.cantidadPersonas),
+      source.cantidadPersonas !== undefined
+        ? Number(source.cantidadPersonas)
+        : Number(current.cantidadPersonas),
     motivo: source.motivo ?? current.motivo,
     estado: source.estado ?? current.estado
   };
@@ -34,11 +36,11 @@ function buildAllowedReservaData(source, current = {}) {
 
 async function getReservaForUser(id, currentUser) {
   const reserva = await Reserva.findByPk(id, { include: buildReservaInclude() });
-  if (!reserva) {
-    throw new AppError("Reserva inexistente", 404);
-  }
+
+  if (!reserva) throw new AppError("Reserva inexistente", 404);
 
   const plain = toPlain(reserva);
+
   if (currentUser.rol !== "admin" && plain.usuarioId !== currentUser.id) {
     throw new AppError("No tenes permisos para ver esta reserva", 403);
   }
@@ -59,6 +61,7 @@ async function listReservas(query, currentUser) {
   } = query;
 
   const where = {};
+
   if (currentUser.rol !== "admin") where.usuarioId = currentUser.id;
   if (fecha) where.fecha = fecha;
   if (estado) where.estado = estado;
@@ -68,6 +71,7 @@ async function listReservas(query, currentUser) {
   const allowedSorts = ["fecha", "horaInicio", "estado", "createdAt", "cantidadPersonas"];
   const selectedSort = allowedSorts.includes(sortBy) ? sortBy : "createdAt";
   const selectedOrder = order === "asc" ? "ASC" : "DESC";
+
   const numericPage = Math.max(Number(page) || 1, 1);
   const numericLimit = Math.max(Number(limit) || 10, 1);
 
@@ -93,23 +97,26 @@ async function listReservas(query, currentUser) {
 
 async function validateBusinessRules(reservaData, ignoreReservaId = null, transaction = null) {
   const aula = await Aula.findByPk(reservaData.aulaId, { transaction });
-  if (!aula) {
-    throw new AppError("El aula indicada no existe", 400);
-  }
-  if (!aula.activa) {
-    throw new AppError("El aula indicada no esta activa", 400);
-  }
+
+  if (!aula) throw new AppError("El aula indicada no existe", 400);
+  if (!aula.activa) throw new AppError("El aula indicada no esta activa", 400);
+
   if (Number(reservaData.cantidadPersonas) > aula.capacidad) {
     throw new AppError("El aula no tiene capacidad suficiente", 400);
   }
+
   if (toMinutes(reservaData.horaInicio) >= toMinutes(reservaData.horaFin)) {
     throw new AppError("La hora de inicio debe ser menor que la hora de fin", 400);
   }
+
   if (
     toMinutes(reservaData.horaInicio) < toMinutes(config.horarioLaboral.inicio) ||
     toMinutes(reservaData.horaFin) > toMinutes(config.horarioLaboral.fin)
   ) {
-    throw new AppError(`El horario debe estar dentro de ${config.horarioLaboral.inicio} a ${config.horarioLaboral.fin}`, 400);
+    throw new AppError(
+      `El horario debe estar dentro de ${config.horarioLaboral.inicio} a ${config.horarioLaboral.fin}`,
+      400
+    );
   }
 
   const where = {
@@ -117,24 +124,26 @@ async function validateBusinessRules(reservaData, ignoreReservaId = null, transa
     fecha: reservaData.fecha,
     estado: { [Op.in]: estadosQueBloquean }
   };
+
   if (ignoreReservaId) {
     where.id = { [Op.ne]: ignoreReservaId };
   }
 
   const reservasDelDia = await Reserva.findAll({ where, transaction });
-  const conflict = reservasDelDia.find((reserva) =>
-    overlaps(reservaData.horaInicio, reservaData.horaFin, reserva.horaInicio, reserva.horaFin)
+
+  const conflict = reservasDelDia.find((r) =>
+    overlaps(reservaData.horaInicio, reservaData.horaFin, r.horaInicio, r.horaFin)
   );
 
   if (conflict) {
-    throw new AppError("La reserva se superpone con otra reserva pendiente o aprobada", 400);
+    throw new AppError("La reserva se superpone con otra reserva", 400);
   }
 }
 
 async function addHistory(reservaId, userId, accion, valorAnterior, valorNuevo, transaction) {
   return HistorialReserva.create(
     {
-      id: `hist-${Date.now()}-${Math.round(Math.random() * 100000)}`,
+      id: `hist-${Date.now()}-${Math.random()}`,
       reservaId,
       usuarioId: userId,
       accion,
@@ -170,6 +179,7 @@ async function createReserva(body, currentUser) {
     );
 
     await addHistory(reserva.id, currentUser.id, "creacion", null, toPlain(reserva), transaction);
+
     return reserva;
   });
 
@@ -184,7 +194,7 @@ function validateStateTransition(from, to) {
     cancelada: []
   };
 
-  if (!allowed[from] || !allowed[from].includes(to)) {
+  if (!allowed[from]?.includes(to)) {
     throw new AppError("Transicion de estado no permitida", 400);
   }
 }
@@ -192,25 +202,19 @@ function validateStateTransition(from, to) {
 async function updateReserva(id, body, currentUser) {
   const updated = await sequelize.transaction(async (transaction) => {
     const reserva = await Reserva.findByPk(id, { transaction });
-    if (!reserva) {
-      throw new AppError("Reserva inexistente", 404);
-    }
+    if (!reserva) throw new AppError("Reserva inexistente", 404);
 
     const current = toPlain(reserva);
+
     const isOwner = current.usuarioId === currentUser.id;
     const isAdmin = currentUser.rol === "admin";
 
     if (!isAdmin && (!isOwner || current.estado !== "pendiente")) {
       throw new AppError("No tenes permisos para editar esta reserva", 403);
     }
-    if (!isAdmin && body.estado) {
-      throw new AppError("No tenes permisos para cambiar el estado", 403);
-    }
-    if (estadosFinales.includes(current.estado)) {
-      throw new AppError("No se puede modificar una reserva cancelada o rechazada", 400);
-    }
 
     const nextReserva = buildAllowedReservaData(body, current);
+
     await validateBusinessRules(nextReserva, id, transaction);
 
     if (body.estado && body.estado !== current.estado) {
@@ -218,7 +222,9 @@ async function updateReserva(id, body, currentUser) {
     }
 
     await reserva.update(nextReserva, { transaction });
+
     await addHistory(id, currentUser.id, "edicion", current, toPlain(reserva), transaction);
+
     return reserva;
   });
 
@@ -228,27 +234,41 @@ async function updateReserva(id, body, currentUser) {
 async function changeEstado(id, nextEstado, currentUser) {
   const updated = await sequelize.transaction(async (transaction) => {
     const reserva = await Reserva.findByPk(id, { transaction });
-    if (!reserva) {
-      throw new AppError("Reserva inexistente", 404);
-    }
+    if (!reserva) throw new AppError("Reserva inexistente", 404);
 
     const current = toPlain(reserva);
+
     const isOwner = current.usuarioId === currentUser.id;
     const isAdmin = currentUser.rol === "admin";
 
     if (nextEstado === "cancelada") {
       if (!isAdmin && !isOwner) {
-        throw new AppError("No tenes permisos para cancelar esta reserva", 403);
+        throw new AppError("No tenes permisos para cancelar", 403);
       }
     } else if (!isAdmin) {
-      throw new AppError("No tenes permisos para realizar esta accion", 403);
+      throw new AppError("No tenes permisos para esta accion", 403);
     }
 
     validateStateTransition(current.estado, nextEstado);
 
     await reserva.update({ estado: nextEstado }, { transaction });
-    const accion = nextEstado === "aprobada" ? "aprobacion" : nextEstado === "rechazada" ? "rechazo" : "cancelacion";
-    await addHistory(id, currentUser.id, accion, { estado: current.estado }, { estado: nextEstado }, transaction);
+
+    const accion =
+      nextEstado === "aprobada"
+        ? "aprobacion"
+        : nextEstado === "rechazada"
+        ? "rechazo"
+        : "cancelacion";
+
+    await addHistory(
+      id,
+      currentUser.id,
+      accion,
+      { estado: current.estado },
+      { estado: nextEstado },
+      transaction
+    );
+
     return reserva;
   });
 
@@ -257,16 +277,15 @@ async function changeEstado(id, nextEstado, currentUser) {
 
 async function getHistorial(id, currentUser) {
   const reserva = await Reserva.findByPk(id);
-  if (!reserva) {
-    throw new AppError("Reserva inexistente", 404);
-  }
+  if (!reserva) throw new AppError("Reserva inexistente", 404);
+
   if (currentUser.rol !== "admin" && reserva.usuarioId !== currentUser.id) {
-    throw new AppError("No tenes permisos para ver este historial", 403);
+    throw new AppError("No tenes permisos", 403);
   }
 
   const historial = await HistorialReserva.findAll({
     where: { reservaId: id },
-    include: [{ model: Usuario, as: "usuario", attributes: ["id", "keycloakId", "nombre", "email", "rol", "activo"] }],
+    include: [{ model: Usuario, as: "usuario" }],
     order: [["fechaHora", "ASC"]]
   });
 
@@ -278,36 +297,13 @@ async function getResumen() {
   const aulas = await Aula.findAll();
 
   const reservasPlain = reservas.map(toPlain);
-  const porEstado = reservasPlain.reduce((acc, reserva) => {
-    acc[reserva.estado] = (acc[reserva.estado] || 0) + 1;
+
+  const porEstado = reservasPlain.reduce((acc, r) => {
+    acc[r.estado] = (acc[r.estado] || 0) + 1;
     return acc;
   }, {});
 
-  const ocupacionPorAula = aulas
-    .map((aulaModel) => {
-      const aula = toPlain(aulaModel);
-      const reservasAula = reservasPlain.filter((reserva) => reserva.aulaId === aula.id);
-      const totalPersonas = reservasAula.reduce((sum, reserva) => sum + Number(reserva.cantidadPersonas), 0);
-      return {
-        aulaId: aula.id,
-        nombre: aula.nombre,
-        cantidadReservas: reservasAula.length,
-        ocupacionPromedio: reservasAula.length ? Math.round(totalPersonas / reservasAula.length) : 0
-      };
-    })
-    .sort((a, b) => b.cantidadReservas - a.cantidadReservas);
-
-  const today = new Date().toISOString().slice(0, 10);
-  const proximasDelDia = reservasPlain
-    .filter((reserva) => reserva.fecha >= today && estadosQueBloquean.includes(reserva.estado))
-    .sort((a, b) => `${a.fecha} ${a.horaInicio}`.localeCompare(`${b.fecha} ${b.horaInicio}`))
-    .slice(0, 5);
-
-  return {
-    porEstado,
-    ocupacionPorAula,
-    proximasDelDia
-  };
+  return { porEstado };
 }
 
 export {
