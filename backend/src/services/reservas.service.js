@@ -136,7 +136,7 @@ async function validateBusinessRules(reservaData, ignoreReservaId = null, transa
   );
 
   if (conflict) {
-    throw new AppError("La reserva se superpone con otra reserva", 400);
+    throw new AppError("La reserva se superpone con otra reserva pendiente o aprobada", 400);
   }
 }
 
