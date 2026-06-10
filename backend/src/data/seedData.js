@@ -1,6 +1,6 @@
 ﻿// La autenticacion se delega en Keycloak; estos usuarios solo representan perfiles de dominio.
 const seedData = {
-  /*usuarios: [
+  usuarios: [
     {
       id: "usr-admin",
       keycloakId: "kc-admin",
@@ -25,7 +25,7 @@ const seedData = {
       rol: "usuario",
       activo: true
     }
-  ],*/
+  ],
   aulas: [
     {
       id: "aula-910",
@@ -89,7 +89,7 @@ const seedData = {
       horaInicio: "11:00",
       horaFin: "13:00",
       cantidadPersonas: 70,
-      motivo: "Parcial de Programacion",
+      motivo: "Parcial de Programación",
       estado: "aprobada",
       createdAt: "2026-06-08T11:00:00.000Z"
     },
@@ -101,7 +101,7 @@ const seedData = {
       horaInicio: "14:00",
       horaFin: "16:00",
       cantidadPersonas: 28,
-      motivo: "Practica de laboratorio",
+      motivo: "Práctica de laboratorio",
       estado: "rechazada",
       createdAt: "2026-06-09T09:00:00.000Z"
     },
@@ -113,7 +113,7 @@ const seedData = {
       horaInicio: "08:00",
       horaFin: "10:00",
       cantidadPersonas: 25,
-      motivo: "Reunion de catedra",
+      motivo: "Reunión de catedra",
       estado: "cancelada",
       createdAt: "2026-06-09T10:00:00.000Z"
     },
@@ -149,7 +149,7 @@ const seedData = {
       horaInicio: "10:00",
       horaFin: "12:00",
       cantidadPersonas: 30,
-      motivo: "Simulacion de examen",
+      motivo: "Simulación de examen",
       estado: "aprobada",
       createdAt: "2026-06-11T08:00:00.000Z"
     },
@@ -185,7 +185,7 @@ const seedData = {
       horaInicio: "09:00",
       horaFin: "10:30",
       cantidadPersonas: 60,
-      motivo: "Presentacion final",
+      motivo: "Presentación final",
       estado: "rechazada",
       createdAt: "2026-06-12T11:00:00.000Z"
     }

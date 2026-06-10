@@ -37,7 +37,7 @@ test("login local queda delegado a Keycloak", async () => {
 
   expect(response.status).toBe(200);
   expect(response.body.authProvider).toBe("keycloak");
-  expect(response.body.keycloak.realm).toBe("reservas-aulas");
+  expect(response.body.keycloak.realm).toBe("dds-materia");
 });
 
 test("listado de reservas sin filtros devuelve paginacion", async () => {
